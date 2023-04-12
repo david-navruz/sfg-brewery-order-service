@@ -73,6 +73,17 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     }
 
+    @Override
+    public void processvalidationResult(UUID beerOrderId, Boolean isValid) {
+        BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderId);
+        if(isValid){
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_PASSED);
+        }
+        else {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_FAILED);
+        }
+    }
+
     private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum event) {
         StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = build(beerOrder);
         Message msg = MessageBuilder.withPayload(event) // the payload is the main data object that is being sent or received in the message.

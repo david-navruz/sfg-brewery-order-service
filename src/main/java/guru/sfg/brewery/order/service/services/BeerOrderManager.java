@@ -23,4 +23,6 @@ public interface BeerOrderManager {
 
     void cancelOrder(UUID beerOrderId);
 
+    void processvalidationResult(UUID beerOrderId, Boolean isValid);
+
 }
