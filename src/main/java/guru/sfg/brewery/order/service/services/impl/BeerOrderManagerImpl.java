@@ -14,6 +14,8 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -50,7 +52,9 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     @Override
     public void beerOrderAllocationPassed(BeerOrderDto beerOrder) {
-
+        BeerOrder beerOrder1 = beerOrderRepository.getOne(beerOrder.getId());
+        sendBeerOrderEvent(beerOrder1, BeerOrderEventEnum.ALLOCATION_SUCCESS);
+        updateAllocatedQuantity(beerOrder);
     }
 
     @Override
@@ -60,7 +64,8 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     @Override
     public void beerOrderAllocationFailed(BeerOrderDto beerOrder) {
-
+        BeerOrder beerOrder1 = beerOrderRepository.getOne(beerOrder.getId());
+        sendBeerOrderEvent(beerOrder1, BeerOrderEventEnum.ALLOCATION_FAILED);
     }
 
     @Override
@@ -105,6 +110,23 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
                 });
         sm.start(); // start() method makes the state machine start processing events and making state transitions.
         return sm;
+    }
+
+    // Deduct the total number of allocated products from the inventory
+    private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {
+        Optional<BeerOrder> allocatedOrderOptional = beerOrderRepository.findById(beerOrderDto.getId());
+
+        allocatedOrderOptional.ifPresentOrElse(allocatedOrder -> {
+            allocatedOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+                beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
+                    if (beerOrderLine.getId().equals(beerOrderLineDto.getId())) {
+                        beerOrderLine.setQuantityAllocated(beerOrderLineDto.getQuantityAllocated());
+                    }
+                });
+            });
+            beerOrderRepository.saveAndFlush(allocatedOrder);
+
+        }, () -> log.error("Order Not Found. Id: " + beerOrderDto.getId()));
     }
 
 
