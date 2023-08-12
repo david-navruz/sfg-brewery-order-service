@@ -82,9 +82,16 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     public void processvalidationResult(UUID beerOrderId, Boolean isValid) {
         BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderId);
         if(isValid){
+            // If it's valid, we send the Validation passed event to the State Machine
+            // State Machine will check it, persist the changes to the db
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_PASSED);
+            // We get back the BeerOrder object from the db, (as it has been updated by the SM)
+            BeerOrder validatedOrder = beerOrderRepository.getById(beerOrderId);
+            // Send it to the Allocate Order Queue
+            sendBeerOrderEvent(validatedOrder, BeerOrderEventEnum.ALLOCATE_ORDER);
         }
         else {
+            // If it's not valid, we send the Validation Failed event to the SM
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_FAILED);
         }
     }

@@ -24,7 +24,6 @@ import java.util.UUID;
 @Component
 public class AllocateOrderAction implements Action<BeerOrderStatusEnum, BeerOrderEventEnum> {
 
-
     private final JmsTemplate jmsTemplate;
     private final BeerOrderRepository beerOrderRepository;
     private final BeerOrderMapper beerOrderMapper;
@@ -36,11 +35,12 @@ public class AllocateOrderAction implements Action<BeerOrderStatusEnum, BeerOrde
         Optional<BeerOrder> beerOrderOptional = beerOrderRepository.findById(UUID.fromString(beerOrderId));
 
         beerOrderOptional.ifPresentOrElse(beerOrder -> {
-            jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_QUEUE, AllocateBeerOrderRequest.builder().beerOrder(beerOrderMapper.beerOrderToDto(beerOrder)).build());
+            jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_QUEUE,
+                    AllocateBeerOrderRequest.builder().beerOrder(beerOrderMapper.beerOrderToDto(beerOrder)).build());
 
         }, () -> log.error("Order Not Found. Id: " + beerOrderId));
 
-        log.debug("Sent Allocatiob request to queue for order id " + beerOrderId);
+        log.debug("Sent Allocation request to queue for order id " + beerOrderId);
     }
 
 
