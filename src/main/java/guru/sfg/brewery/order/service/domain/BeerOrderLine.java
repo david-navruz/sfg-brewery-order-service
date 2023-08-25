@@ -46,7 +46,7 @@ public class BeerOrderLine {
     @Type(type="org.hibernate.type.UUIDCharType")
     @Column(length = 36, columnDefinition = "varchar(36)")
     private UUID beerId;
-
+    private String upc;
     private Integer orderQuantity = 0;
     private Integer quantityAllocated = 0;
 }

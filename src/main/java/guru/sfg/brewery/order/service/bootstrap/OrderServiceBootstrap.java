@@ -15,31 +15,25 @@ import java.util.UUID;
 @Component
 public class OrderServiceBootstrap implements CommandLineRunner {
 
-    public static final String CUSTOMER_NAME = "Bird Dog Brewing";
+    public static final String TASTING_ROOM = "Tasting Room";
+    public static final String BEER_1_UPC = "0631234200036";
+    public static final String BEER_2_UPC = "0631234300019";
+    public static final String BEER_3_UPC = "0083783375213";
 
     private final CustomerRepository customerRepository;
 
-
     @Override
     public void run(String... args) throws Exception {
-        Optional<Customer> optionalCustomer = customerRepository.findByCustomerName(CUSTOMER_NAME);
+        loadCustomerData();
+    }
 
-        if (optionalCustomer.isEmpty()) {
-            //create if not found
-            Customer savedCustomer = customerRepository.save(
-                    Customer.builder().
-                            customerName(CUSTOMER_NAME)
-                            .apiKey(UUID.randomUUID())
-                            .build());
-            log.info("##################################################################");
-            log.info("# Saved Customer Id: " + savedCustomer.getId() + "#");
-            log.info("##################################################################");
-        } else {
-            log.info("##################################################################");
-            log.info("# Found Customer Id: " + optionalCustomer.get().getId() + "#");
-            log.info("##################################################################");
+    private void loadCustomerData() {
+        if(customerRepository.findAllByCustomerNameLike(OrderServiceBootstrap.TASTING_ROOM).size() == 0){
+            Customer savedCustomer = customerRepository.saveAndFlush(
+                    Customer.builder().apiKey(UUID.randomUUID()).build()
+            );
+            log.debug("Tasting Room Customer Id: " + savedCustomer.getId().toString());
         }
-
     }
 
 }
